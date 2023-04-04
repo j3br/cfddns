@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  cfddns:
+    image: j3br/cfddns
+    container_name: cfddns
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - CRON_SCHEDULE="0 * * * *" # Custom cron schedule. Defaults to every 5 min if omitted.
+    volumes:
+      - /path/to/config.json:/app/config.json
+    restart: unless-stopped
