@@ -28,8 +28,14 @@ For more information on the required format and structure of the configuration f
 ### Running with Python
 To run the program with Python, use the following command:
 ```
-python -m cfddns [--config /path/to/config.json]
+python -m cfddns [--config /path/to/config.json] [-i INTERVAL]
 ```
+Optional Arguments
+
+`-i INTERVAL, --interval INTERVAL`
+
+Interval between loop iterations in seconds (default is 60 seconds; minimum is 30 seconds, maximum is 3600 seconds)
+
 
 ### Running with Docker
 
@@ -40,7 +46,7 @@ docker run -d \
     --security-opt no-new-privileges:true \
     -e PUID=1000 \
     -e PGID=1000 \
-    -e CRON_SCHEDULE="0 * * * *" \
+    -e INTERVAL=60 \
     -v /path/to/config.json:/app/config.json \
     --restart unless-stopped \
     j3br/cfddns
@@ -58,7 +64,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - CRON_SCHEDULE="0 * * * *" # Custom cron schedule. Defaults to every 5 min if omitted.
+      - INTERVAL=60 # Custom interval in seconds (valid range: 30-3600). If omitted, the DNS update runs only once.
     volumes:
       - /path/to/config.json:/app/config.json
     restart: unless-stopped

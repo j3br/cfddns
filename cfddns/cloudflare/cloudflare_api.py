@@ -104,7 +104,7 @@ class CloudflareAPI:
                     update_content, update_proxied, update_ttl = self._needs_update(record, subdomain, ttl, ip_data)
 
                     if any([update_content, update_proxied, update_ttl]):
-                        print(f"Updating record {str(record['name'])}")
+                        print(f"Updating record for {str(record['name'])}")
                         identifier = record["id"]
                         # Create payload for DNS update
                         payload = {
@@ -130,7 +130,7 @@ class CloudflareAPI:
                     break
 
             else: # Create new DNS record if no existing record found
-                print(f"Creating new record {fqdn}")
+                print(f"Creating new record for {fqdn}")
                 # Create payload for new DNS record
                 payload = {
                     "type": ip_data["type"],

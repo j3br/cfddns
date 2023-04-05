@@ -16,26 +16,15 @@ fi
 
 echo "Configuration file found at $script_dir/config.json"
 
-# Set up cron schedule from environment variable
-CRON_SCHEDULE=${CRON_SCHEDULE:-"*/5 * * * *"}
+# Set up interval from environment variable
+INTERVAL=${INTERVAL:-60}
 
-# Validate cron schedule
-if ! echo "$CRON_SCHEDULE" | crontab -; then
-    echo "ERROR: Invalid cron schedule: $CRON_SCHEDULE"
+# Validate interval
+if [ $INTERVAL -lt 30 ] || [ $INTERVAL -gt 3600 ]; then
+    echo "ERROR: Invalid interval value: $INTERVAL. Interval must be between 30 and 3600 seconds."
     echo "Exiting..." && exit 1
 fi
 
-# Setup cron
-echo "$CRON_SCHEDULE /bin/sh /app/run.sh >> /var/log/cron.log 2>&1" > /etc/crontabs/root
-
-echo "Cron job scheduled to run according to the following schedule:"
-crontab -l
-
-echo ""
-echo "To customize the cron schedule, set the CRON_SCHEDULE environment variable when running the container."
-echo "Example: docker run -e CRON_SCHEDULE=\"0 * * * *\" image"
-echo ""
-
 echo "Container started successfully."
 
-crond && tail -f /var/log/cron.log
+/usr/local/bin/python -u -m cfddns --config /app/config.json -i $INTERVAL

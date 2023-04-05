@@ -9,11 +9,8 @@ FROM dependencies AS release
 WORKDIR /app
 
 COPY cfddns/ /app/cfddns/
-COPY docker/run.sh docker/start.sh /app/
+COPY docker/start.sh /app/
 
-RUN chmod +x /app/run.sh && \
-    chmod +x /app/start.sh
-
-RUN touch /var/log/cron.log
+RUN chmod +x /app/start.sh
 
 CMD ["sh", "-c", "/app/start.sh"]

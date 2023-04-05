@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from typing import Dict, Any, Optional
 import requests
 from cfddns.utils.helpers import is_valid_ip_address, validate_config
@@ -11,6 +12,9 @@ from cfddns.cloudflare.cloudflare_api import CloudflareAPI
 parser = argparse.ArgumentParser(prog="cfddns", description='Cloudflare Dynamic DNS updater')
 parser.add_argument('--config', metavar='config_file', type=str,
                     help='the path to your config.json file')
+parser.add_argument('-i', '--interval', type=int,
+help='Interval between loop iterations in seconds')
+
 
 
 def load_config(config_file_path: Optional[str] = None) -> Dict[str, Any]:
@@ -51,24 +55,7 @@ def get_ip() -> str:
     )
     sys.exit(1)
 
-
-def run():
-
-    args = parser.parse_args()
-
-    print("🚀 Initializing Cloudflare Dynamic DNS updater...")
-    config = load_config(args.config)
-    validate_config(config)
-    print("Successfully validated config.json")
-
-    print("Fetching IP address...")
-    ip_address, ip_type = get_ip()
-    ip_data = {"address": ip_address, "type": ip_type}
-    print(f"Result: {ip_data}")
-
-    print("Initializing Cloudflare API client...")
-    cloudflare = CloudflareAPI(config)
-
+def update_dns(config, cloudflare, ip_data, interval_seconds=None):
     changes_made = 0
     subdomain_count = len(config['cloudflare']['subdomains'])
     print(f"Checking {subdomain_count} subdomain{'s' if subdomain_count > 1 else ''}...")
@@ -85,7 +72,53 @@ def run():
         if cloudflare.update_dns_record(subdomain, ttl, ip_data):
             changes_made += 1
 
-    print(f"💫 Done! {changes_made} DNS record{'s' if changes_made != 1 else ''} updated or created.")
+    if changes_made > 0:
+        print(f"💫 Done! {changes_made} DNS record{'s' if changes_made != 1 else ''} updated or created.")
+    else:
+        print("All DNS records up-to-date. No updates necessary.")
+
+    if interval_seconds is not None:
+        print(f"\nSleeping for {interval_seconds} seconds...")
+        time.sleep(interval_seconds)
+
+def run():
+
+    args = parser.parse_args()
+
+    print("🚀 Starting Cloudflare Dynamic DNS updater...")
+    config = load_config(args.config)
+    validate_config(config)
+    print("Successfully validated config.json")
+
+    print("Initializing Cloudflare API client...")
+    cloudflare = CloudflareAPI(config)
+
+    if args.interval is not None:
+        # Validate interval and set to provided or default value
+        if args.interval < 30 or args.interval > 3600:
+            print("❗️ Invalid interval. Using default value of 60 seconds.")
+            interval_seconds = 60
+        else:
+            interval_seconds = args.interval
+
+        while True:
+            try:
+                print("Fetching current IP address...")
+                ip_address, ip_type = get_ip()
+                ip_data = {"address": ip_address, "type": ip_type}
+                print(f"Current IP address: {ip_address}")
+
+                update_dns(config, cloudflare, ip_data, interval_seconds)
+            except KeyboardInterrupt:
+                print("\nCaught keyboard interrupt. Exiting...")
+                break
+    else:
+        # Run the DNS update only once
+        print("Fetching current IP address...")
+        ip_address, ip_type = get_ip()
+        ip_data = {"address": ip_address, "type": ip_type}
+        print(f"Current IP address: {ip_address}")
+        update_dns(config, cloudflare, ip_data)
 
 if __name__ == "__main__":
     run()
