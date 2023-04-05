@@ -11,15 +11,13 @@ pip install -r requirements.txt
 
 ## Configuration
 
-By default, the program looks for a `config.json` file inside the cfddns module directory. However, you can specify a custom path to your configuration file using the `--config` command-line argument.
+By default, the program looks for a `config.json` file inside the cfddns module directory. 
 
 To provide a custom path to your configuration file, use the following command:
 
 ```bash
 cfddns --config /path/to/config.json
 ```
-
-Replace /path/to/config.json with the actual path to your configuration file.
 
 Note that the configuration file must be a valid JSON file.
 For more information on the required format and structure of the configuration file, refer to the `config-sample.json` file provided in the cfddns module directory.
@@ -28,6 +26,7 @@ For more information on the required format and structure of the configuration f
 ## Usage
 
 ### Running with Python
+To run the program with Python, use the following command:
 ```
 python -m cfddns [--config /path/to/config.json]
 ```
