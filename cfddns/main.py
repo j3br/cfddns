@@ -38,22 +38,19 @@ def get_ip() -> str:
         response.pop()
         ip_address = dict(s.split("=") for s in response)["ip"]
     except ValueError as err:
-        print(f"Error parsing response: {str(err)}")
-        sys.exit(1)
+        raise ValueError(f"Error parsing response: {str(err)}") from err
     except requests.exceptions.RequestException as exc:
-        print(f"An error occurred: {exc}")
-        sys.exit(1)
+        raise Exception(f"An error occurred: {exc}") from exc
 
     # Validate IP address and check type
+    result = {}
     valid, ip_type = is_valid_ip_address(ip_address)
     if valid:
-        return ip_address, ip_type
+        result["address"] = ip_address
+        result["type"] = ip_type
+        return result
 
-    print(
-        # Limit the response length in case it is too long.
-        f"Error: Invalid IP address: {ip_address[:28]}..."
-    )
-    sys.exit(1)
+    return None
 
 def update_dns(config, cloudflare, ip_data, interval_seconds=None):
     changes_made = 0
@@ -104,11 +101,10 @@ def run():
         while True:
             try:
                 print("Fetching current IP address...")
-                ip_address, ip_type = get_ip()
-                ip_data = {"address": ip_address, "type": ip_type}
-                print(f"Current IP address: {ip_address}")
-
-                update_dns(config, cloudflare, ip_data, interval_seconds)
+                ip_data = get_ip()
+                if ip_data:
+                    print(f"Current IP address: {ip_data.get('address')}")
+                    update_dns(config, cloudflare, ip_data, interval_seconds)
             except KeyboardInterrupt:
                 print("\nCaught keyboard interrupt. Exiting...")
                 break
