@@ -1,51 +1,24 @@
 import unittest
-from cfddns.utils.helpers import validate_config
+from pathlib import Path
+from cfddns.main import validate_config, load_config
+
 
 class TestValidateConfig(unittest.TestCase):
 
-    def test_valid_config(self):
-        # Define a valid configuration
-        config = {
-            "cloudflare": {
-                "authentication": {
-                    "api_key": {
-                        "api_key": "my_api_key",
-                        "account_email": "my_email@example.com"
-                    }
-                },
-                "zone_id": "my_zone_id",
-                "subdomains": [
-                    {
-                        "name": "example.com",
-                        "proxied": True,
-                        "ttl": "1"
-                    }
-                ]
-            }
-        }
-        # Call the validate_config function and assert no exceptions are raised
-        self.assertIsNone(validate_config(config))
+    def setUp(self):
+        # Set up paths relative to the current script's directory
+        self.test_dir = Path(__file__).resolve().parent
+        self.valid_config_path = self.test_dir / "valid.yaml"
+        self.invalid_config_path = self.test_dir / "invalid.yaml"
 
-    def test_invalid_auth_config(self):
-        # Define an invalid authentication configuration
-        config = {
-            "cloudflare": {
-                "authentication": {},
-                "zone_id": "my_zone_id",
-                "subdomains": [
-                    {
-                        "name": "example.com",
-                        "proxied": True,
-                        "ttl": "XYZ"
-                    }
-                ]
-            }
-        }
-        # Call the validate_config function and assert the correct exception is raised
-        with self.assertRaises(ValueError):
-            validate_config(config)
+    def test_load_valid_config(self):
+        # Validate the loaded configuration
+        self.assertIsNotNone(load_config(self.valid_config_path))
 
-    # Add more test cases to cover other validation scenarios
+    def test_load_invalid_config(self):
+        # Assert that the configuration is None
+        self.assertIsNone(load_config(self.invalid_config_path))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
