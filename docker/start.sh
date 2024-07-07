@@ -27,4 +27,4 @@ fi
 
 echo "Container started successfully."
 
-/usr/local/bin/python -u -m cfddns --config /app/config.yaml -i $INTERVAL
+/usr/local/bin/python -u -m cfddns -i $INTERVAL /app/config.yaml
