@@ -47,7 +47,7 @@ docker run -d \
     -e PUID=1000 \
     -e PGID=1000 \
     -e INTERVAL=60 \
-    -v /path/to/config.json:/app/config.yaml \
+    -v /path/to/config.yaml:/app/config.yaml \
     --restart unless-stopped \
     j3br/cfddns
 ```
