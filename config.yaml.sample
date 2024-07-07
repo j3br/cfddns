@@ -1,0 +1,22 @@
+auth:
+  # Authentication using API token (if available)
+  api_token: 279b...6636
+
+  # Authentication using API key and email
+  api_key:
+    key: foo   # Replace with your actual API key
+    email: bar     # Replace with your actual email
+
+# Zone ID for the domain
+zone_id: 795e...c5f3
+
+# Subdomains configuration
+subdomains:
+  xxx.foo.bar:
+    proxied: true  
+    ttl: auto       # Time-to-live in seconds; 'auto' sets it automatically
+
+  yyy.foo.bar:
+    proxied: true 
+    ttl: 300 
+
