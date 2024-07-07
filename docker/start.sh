@@ -7,14 +7,14 @@ script_dir=$(dirname "$0")
 echo "Starting container..."
 
 # Check if the configuration file exists in the expected location
-if ! [[ -f "$script_dir/config.json" ]]; then
+if ! [[ -f "$script_dir/config.yaml" ]]; then
   echo "ERROR: Config file not found. Make sure it's mounted as a volume using:"
   echo "  volumes:"
-  echo "    - /path/to/config.json:/config.json"
+  echo "    - /path/to/config.yaml:/config.yaml"
   echo "Exiting..." && exit 1
 fi
 
-echo "Configuration file found at $script_dir/config.json"
+echo "Configuration file found at $script_dir/config.yaml"
 
 # Set up interval from environment variable
 INTERVAL=${INTERVAL:-60}
@@ -27,4 +27,4 @@ fi
 
 echo "Container started successfully."
 
-/usr/local/bin/python -u -m cfddns --config /app/config.json -i $INTERVAL
+/usr/local/bin/python -u -m cfddns --config /app/config.yaml -i $INTERVAL

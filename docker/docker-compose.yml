@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   cfddns:
     image: j3br/cfddns
@@ -10,5 +9,5 @@ services:
       - PGID=1000
       - INTERVAL=60 # Custom interval in seconds (valid range: 30-3600). If omitted, the DNS update runs only once.
     volumes:
-      - /path/to/config.json:/app/config.json
+      - /path/to/config.yaml:/app/config.yaml
     restart: unless-stopped
