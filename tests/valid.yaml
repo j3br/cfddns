@@ -1,0 +1,13 @@
+auth:
+  api_token: valid_token
+  api_key:
+    key: my_api_key
+    email: my_email@example.com
+
+zone_id: my_zone_id
+
+subdomains:
+  example.com:
+    proxied: true
+    ttl: auto
+
