@@ -30,7 +30,7 @@ To run the program with Python, use the following command:
 ```
 python -m cfddns [-i INTERVAL] path/to/config.yaml
 ```
-Optional Arguments
+**Optional Arguments**
 
 `-i INTERVAL, --interval INTERVAL`
 
