@@ -1,6 +1,7 @@
 import logging
 import secrets
 import sys
+from datetime import datetime
 from typing import Dict, Any, Optional
 import requests
 
@@ -165,6 +166,7 @@ class CloudflareAPI:
                             ),
                             "proxied": proxied if update_proxied else record["proxied"],
                             "ttl": ttl if update_ttl else record["ttl"],
+                            "comment": f"Updated by cffdns @{datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}",
                         }
                         try:
                             response = self.session.patch(
@@ -195,6 +197,7 @@ class CloudflareAPI:
                 "content": ip_data["address"],
                 "proxied": proxied,
                 "ttl": ttl,
+                "comment": f"Created by cffdns @{datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}",
             }
             try:
                 response = self.session.post(
