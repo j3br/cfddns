@@ -10,7 +10,7 @@ echo "Starting container..."
 if ! [[ -f "$script_dir/config/config.yaml" ]]; then
   echo "ERROR: Config file not found. Make sure it's mounted as a volume using:"
   echo "  volumes:"
-  echo "    - /path/to/config.yaml:/config.yaml"
+  echo "    - ./config:/config"
   echo "Exiting..." && exit 1
 fi
 
