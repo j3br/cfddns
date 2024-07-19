@@ -2,7 +2,6 @@ import argparse
 import hashlib
 import ipaddress
 import logging
-import os
 import sys
 import time
 import requests
@@ -220,6 +219,8 @@ def update_dns(config: Dict, cloudflare: CloudflareAPI) -> None:
 
 
 def main() -> None:
+
+    logger.info(f"Starting cfddns {get_version()}")
 
     args = parser.parse_args()
 
