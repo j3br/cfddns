@@ -53,7 +53,7 @@ docker run -d \
 ```
 
 #### Docker Compose
-```
+```yaml
 services:
   cfddns:
     image: j3br/cfddns
