@@ -1,6 +1,8 @@
 import argparse
+import hashlib
 import ipaddress
 import logging
+import os
 import sys
 import time
 import requests
@@ -18,6 +20,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+def get_version():
+    version = None
+    init_file_path = Path(__file__).resolve().parent / "__init__.py"
+    with init_file_path.open() as f:
+        for line in f:
+            if line.startswith("__version__"):
+                version = line.split("=")[1].strip().strip('"').strip("'")
+                break
+    return version
+
+
 # Define the command-line arguments
 parser = argparse.ArgumentParser(
     prog="cfddns", description="Cloudflare Dynamic DNS updater"
@@ -30,6 +44,7 @@ parser.add_argument(
 parser.add_argument(
     "-i", "--interval", type=int, help="Interval between loop iterations in seconds"
 )
+parser.add_argument("--version", action="version", version=f"%(prog)s {get_version()}")
 
 
 def validate_config(config: Dict) -> bool:
@@ -102,6 +117,18 @@ def load_config(path: Path) -> Optional[Dict]:
         logger.error("Error parsing configuration file: %s", exc)
 
     return None
+
+
+def get_file_hash(path: Path):
+    # Calculate the SHA-256 hash of the file content
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(4096)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
 
 
 def get_own_ip() -> Optional[Dict]:
@@ -223,11 +250,33 @@ def main() -> None:
     # Run the DNS update once
     update_dns(config, cloudflare)
 
+    # Initial hash of config file
+    initial_hash = get_file_hash(config_path)
+
     # If interval is set, continue running at specified intervals
     if interval_seconds:
         while True:
             logger.info("Sleeping for %d seconds...", interval_seconds)
             time.sleep(interval_seconds)
+
+            # Check if config file has changed
+            current_hash = get_file_hash(config_path)
+            if current_hash != initial_hash:
+                logger.info("Detected change in config file. Reloading...")
+                new_config = load_config(config_path)
+                if new_config:
+                    config = new_config
+                    cloudflare = CloudflareAPI(
+                        API_URL, config
+                    )  # Reinitialize API client
+                    initial_hash = current_hash
+                    logger.info("Configuration reloaded successfully")
+                else:
+                    logger.warning(
+                        "Failed to reload configuration. Continuing with current config."
+                    )
+
+            # Update DNS
             update_dns(config, cloudflare)
 
 
