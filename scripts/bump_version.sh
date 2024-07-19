@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# Directory of this script
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
 # Path to the version file
-VERSION_FILE="cfddns/__init__.py"
+VERSION_FILE="$SCRIPT_DIR/../cfddns/__init__.py"
 
 get_current_version() {
     grep '__version__' "$VERSION_FILE" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'

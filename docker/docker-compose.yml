@@ -9,5 +9,5 @@ services:
       - PGID=1000
       - INTERVAL=60 # Custom interval in seconds (valid range: 30-3600). If omitted, the DNS update runs only once.
     volumes:
-      - /path/to/config.yaml:/app/config.yaml
+      - ./config:/app/config
     restart: unless-stopped

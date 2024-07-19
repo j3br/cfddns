@@ -11,7 +11,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-By default, the program looks for a `config.yaml` file inside the cfddns module directory. 
+By default, the program looks for a `config.yaml` file inside the `config` directory. 
 
 To provide a custom path to your configuration file, use the following command:
 
@@ -20,7 +20,7 @@ cfddns --config /path/to/config.yaml
 ```
 
 Note that the configuration file must be a valid YAML file.
-For more information on the required format and structure of the configuration file, refer to the `config.yaml.sample` file provided in the cfddns module directory.
+For more information on the required format and structure of the configuration file, refer to the `config.yaml.sample` file provided in the `config` directory.
 
 
 ## Usage
@@ -47,7 +47,7 @@ docker run -d \
     -e PUID=1000 \
     -e PGID=1000 \
     -e INTERVAL=60 \
-    -v /path/to/config.yaml:/app/config.yaml \
+    -v ./config:/app/config \
     --restart unless-stopped \
     j3br/cfddns
 ```
@@ -65,6 +65,6 @@ services:
       - PGID=1000
       - INTERVAL=60 # Custom interval in seconds (valid range: 30-3600). If omitted, the DNS update runs only once.
     volumes:
-      - /path/to/config.yaml:/app/config.yaml
+      - ./config:/app/config
     restart: unless-stopped
 ```

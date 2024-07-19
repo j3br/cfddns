@@ -19,4 +19,3 @@ subdomains:
   yyy.foo.bar:
     proxied: true 
     ttl: 300 
-
