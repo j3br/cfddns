@@ -220,9 +220,9 @@ def update_dns(config: Dict, cloudflare: CloudflareAPI) -> None:
 
 def main() -> None:
 
-    logger.info(f"Starting cfddns {get_version()}")
-
     args = parser.parse_args()
+
+    logger.info(f"Starting cfddns {get_version()}")
 
     if args.interval:
         # Validate interval and set to provided or default value
