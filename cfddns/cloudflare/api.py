@@ -13,6 +13,10 @@ def generate_random_id(length: int = 32) -> str:
     return secrets.token_hex(length // 2)
 
 
+class TokenVerificationError(Exception):
+    pass
+
+
 class CloudflareAPI:
     def __init__(self, api_url: str, config: dict):
         self.url = api_url
@@ -21,9 +25,6 @@ class CloudflareAPI:
         self.zone_id = self.config["zone_id"]
         self._set_session_headers()
         self._get_base_domain_name()
-
-    class TokenVerificationError(Exception):
-        pass
 
     def _set_session_headers(self):
         api_token = self.config["auth"]["api_token"]
@@ -39,7 +40,7 @@ class CloudflareAPI:
 
         try:
             self.token_valid = self._verify_token()
-        except self.TokenVerificationError as err:
+        except TokenVerificationError as err:
             logger.error("%s", str(err))
             sys.exit(1)
 
@@ -48,13 +49,13 @@ class CloudflareAPI:
         try:
             response = self.session.get(f"{self.url}/zones/{self.zone_id}")
             response.raise_for_status()
-        except requests.exceptions.HTTPError as err:
+        except requests.exceptions.RequestException as err:
             logger.error("Failed to fetch base domain name: %s", str(err))
             sys.exit(1)
 
         try:
             self.base_domain_name = response.json()["result"]["name"]
-        except KeyError as err:
+        except (KeyError, TypeError) as err:
             logger.error(
                 "Invalid response format. Could not extract base domain name: %s",
                 str(err),
@@ -89,8 +90,8 @@ class CloudflareAPI:
             response = self.session.get(url=url, timeout=10)
             response.raise_for_status()
             return True
-        except requests.exceptions.HTTPError as err:
-            raise self.TokenVerificationError(f"API token validation failed: {err}")
+        except requests.exceptions.RequestException as err:
+            raise TokenVerificationError(f"API token validation failed: {err}")
 
     def get_dns_records(self, record_type) -> Optional[Dict[str, Any]]:
 
@@ -99,13 +100,10 @@ class CloudflareAPI:
                 f"{self.url}/zones/{self.zone_id}/dns_records?per_page=100&type={record_type}"
             )
             response.raise_for_status()
+            return response.json()
         except requests.exceptions.RequestException as err:
             logger.error("Error getting DNS record: %s", str(err))
             return None
-        except KeyError as err:
-            logger.error("Error parsing DNS record response: %s", str(err))
-            return None
-        return response.json()
 
     def _needs_update(self, record, proxied, ttl, ip_data) -> tuple[bool, bool, bool]:
         """Check if a DNS record needs to be updated"""
@@ -176,7 +174,7 @@ class CloudflareAPI:
                             )
                             response.raise_for_status()
                             return True
-                        except requests.exceptions.HTTPError as err:
+                        except requests.exceptions.RequestException as err:
                             logger.error(
                                 "Failed to update DNS record for %s: %s", fqdn, str(err)
                             )
@@ -207,7 +205,7 @@ class CloudflareAPI:
                 )
                 response.raise_for_status()
                 return True
-            except requests.exceptions.HTTPError as err:
+            except requests.exceptions.RequestException as err:
                 logger.error("Failed to create DNS record for %s: %s", fqdn, str(err))
                 return False
         else:
