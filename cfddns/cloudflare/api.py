@@ -17,6 +17,10 @@ class TokenVerificationError(Exception):
     pass
 
 
+class InvalidAPITokenError(Exception):
+    pass
+
+
 class CloudflareAPI:
     def __init__(self, api_url: str, config: dict):
         self.url = api_url
@@ -28,15 +32,13 @@ class CloudflareAPI:
 
     def _set_session_headers(self):
         api_token = self.config["auth"]["api_token"]
-        if api_token not in ("", "your_api_token_here"):
-            self.session.headers.update({"Authorization": "Bearer " + api_token})
-        else:
-            self.session.headers.update(
-                {
-                    "X-Auth-Email": self.config["auth"]["api_key"]["email"],
-                    "X-Auth-Key": self.config["auth"]["api_key"]["key"],
-                }
+        if api_token in ("", "your_api_token_here"):
+            logger.error("Invalid API token provided.")
+            raise InvalidAPITokenError(
+                "API token is missing or set to the default placeholder."
             )
+
+        self.session.headers.update({"Authorization": "Bearer " + api_token})
 
         try:
             self.token_valid = self._verify_token()
@@ -211,3 +213,12 @@ class CloudflareAPI:
         else:
             logger.info("No existing DNS records found for type %s", ip_data["type"])
             return False
+
+
+def init_cloudflare_api(config: dict) -> Optional[CloudflareAPI]:
+    try:
+        cf_api = CloudflareAPI("https://api.cloudflare.com/client/v4", config)
+        return cf_api
+    except InvalidAPITokenError as e:
+        logger.error("Initialization failed: %s", str(e))
+    return None

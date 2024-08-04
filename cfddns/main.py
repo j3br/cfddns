@@ -9,9 +9,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Optional
 
-from cfddns.cloudflare.api import CloudflareAPI
-
-API_URL = "https://api.cloudflare.com/client/v4"
+from cfddns.cloudflare.api import CloudflareAPI, init_cloudflare_api
 
 # Configure logging
 logging.basicConfig(
@@ -167,7 +165,7 @@ def get_own_ip() -> Optional[Dict]:
         raise ValueError(f"Error parsing response: {err}") from err
 
 
-def update_dns(config: Dict, cloudflare: CloudflareAPI) -> None:
+def update_dns(config: Dict, cf_api: CloudflareAPI) -> None:
     """
     Fetch current IP address and update DNS records.
 
@@ -205,7 +203,7 @@ def update_dns(config: Dict, cloudflare: CloudflareAPI) -> None:
 
         logger.info("Subdomain: %s, Proxied: %s, TTL: %s", subdomain, proxied, ttl)
 
-        if cloudflare.update_dns_record(subdomain, proxied, ttl, ip_data):
+        if cf_api.update_dns_record(subdomain, proxied, ttl, ip_data):
             changes_made += 1
 
     if changes_made > 0:
@@ -246,10 +244,14 @@ def main() -> None:
         sys.exit(1)
 
     logger.info("Initializing Cloudflare API client...")
-    cloudflare = CloudflareAPI(API_URL, config)
+
+    cf_api = init_cloudflare_api(config)
+    if not cf_api:
+        logger.error("Cloudflare API initialization failed.")
+        sys.exit(1)
 
     # Run the DNS update once
-    update_dns(config, cloudflare)
+    update_dns(config, cf_api)
 
     # Initial hash of config file
     initial_hash = get_file_hash(config_path)
@@ -267,9 +269,10 @@ def main() -> None:
                 new_config = load_config(config_path)
                 if new_config:
                     config = new_config
-                    cloudflare = CloudflareAPI(
-                        API_URL, config
-                    )  # Reinitialize API client
+                    cf_api = init_cloudflare_api(config)  # Reinitialize API client
+                    if not cf_api:
+                        logger.error("Cloudflare API initialization failed.")
+                        sys.exit(1)
                     initial_hash = current_hash
                     logger.info("Configuration reloaded successfully")
                 else:
@@ -278,7 +281,7 @@ def main() -> None:
                     )
 
             # Update DNS
-            update_dns(config, cloudflare)
+            update_dns(config, cf_api)
 
 
 if __name__ == "__main__":
