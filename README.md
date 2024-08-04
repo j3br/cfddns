@@ -53,6 +53,7 @@ docker run -d \
 ```
 
 #### Docker Compose
+Pre-compiled images are available on [DockerHub](https://hub.docker.com/repository/docker/j3br/cfddns).
 ```yaml
 services:
   cfddns:
