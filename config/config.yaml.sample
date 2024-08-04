@@ -1,11 +1,6 @@
 auth:
-  # Authentication using API token (if available)
+  # Authentication using API token 
   api_token: 279b...6636
-
-  # Authentication using API key and email
-  api_key:
-    key: foo   # Replace with your actual API key
-    email: bar     # Replace with your actual email
 
 # Zone ID for the domain
 zone_id: 795e...c5f3
