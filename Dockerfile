@@ -1,8 +1,8 @@
 FROM python:alpine AS base
 
 FROM base AS dependencies
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
 
 FROM dependencies AS release
 
