@@ -4,10 +4,12 @@ FROM base AS dependencies
 COPY requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-FROM dependencies AS release
+FROM base AS release
+
+WORKDIR /
+COPY --from=dependencies /root/.local /root/.local
 
 WORKDIR /app
-
 COPY cfddns/ /app/cfddns/
 COPY docker/start.sh /app/
 
