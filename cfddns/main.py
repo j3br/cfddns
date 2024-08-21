@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import ipaddress
 import logging
+import signal
 import sys
 import time
 import requests
@@ -16,6 +17,23 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+
+def terminate_signal_handler(sig, _frame) -> None:
+    """Handles termination signals (SIGINT and SIGTERM)."""
+
+    signal_names = {signal.SIGTERM: "SIGTERM", signal.SIGINT: "SIGINT"}
+
+    signal_name = signal_names.get(sig, f"Signal {sig}")
+
+    logger.info("%s received, shutting down", signal_name)
+    sys.exit(0)
+
+
+def signal_catch_setup() -> None:
+    """Set up signal handlers for SIGINT and SIGTERM."""
+    signal.signal(signal.SIGTERM, terminate_signal_handler)
+    signal.signal(signal.SIGINT, terminate_signal_handler)
 
 
 def get_version():
@@ -219,6 +237,9 @@ def update_dns(config: Dict, cf_api: CloudflareAPI) -> None:
 def main() -> None:
 
     args = parser.parse_args()
+
+    # Setup signal handlers
+    signal_catch_setup()
 
     logger.info(f"Starting cfddns {get_version()}")
 
