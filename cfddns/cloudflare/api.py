@@ -1,5 +1,4 @@
 import logging
-import secrets
 import sys
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -7,10 +6,6 @@ import requests
 
 # Initialize the logger
 logger = logging.getLogger(__name__)
-
-
-def generate_random_id(length: int = 32) -> str:
-    return secrets.token_hex(length // 2)
 
 
 class TokenVerificationError(Exception):
