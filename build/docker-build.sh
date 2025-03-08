@@ -3,14 +3,14 @@
 # Directory of this script
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
-VERSION_FILE="$SCRIPT_DIR/../cfddns/__init__.py"
+VERSION_FILE="$SCRIPT_DIR/../cfddns/__about__.py"
 
 if [[ ! -f "$VERSION_FILE" ]]; then
   echo "Version file not found: $VERSION_FILE"
   exit 1
 fi
 
-VERSION=$(awk -F'"' '/__version__/ {print $2}' "$VERSION_FILE")
+VERSION=$(awk -F'[()]' '/__version_info__/ {if (NF>1) {gsub(/[^0-9,]/, "", $2); gsub(/,/, ".", $2); print $2}}' "$VERSION_FILE")
 
 REPO="j3br/cfddns"
 
