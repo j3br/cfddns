@@ -23,8 +23,8 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION_FILE=./cfddns/__init__.py
-        VERSION=$(awk -F'"' '/__version__/ {print $2}' "$VERSION_FILE")
+        VERSION_FILE=./cfddns/__about__.py
+        VERSION=$(awk -F'[()]' '/__version_info__/ {if (NF>1) {gsub(/[^0-9,]/, "", $2); gsub(/,/, ".", $2); print $2}}' "$VERSION_FILE")
         echo "VERSION=$VERSION" >> $GITHUB_ENV
     - name: Build and push Docker image
       run: |
