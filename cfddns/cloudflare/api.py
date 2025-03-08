@@ -1,5 +1,4 @@
 import logging
-import sys
 from datetime import datetime
 from typing import Dict, Any, Optional
 import requests
@@ -39,7 +38,7 @@ class CloudflareAPI:
             self.token_valid = self._verify_token()
         except TokenVerificationError as err:
             logger.error("%s", str(err))
-            sys.exit(1)
+            raise
 
     def _get_base_domain_name(self):
         # Fetch base domain name from Cloudflare API
@@ -48,7 +47,7 @@ class CloudflareAPI:
             response.raise_for_status()
         except requests.exceptions.RequestException as err:
             logger.error("Failed to fetch base domain name: %s", str(err))
-            sys.exit(1)
+            raise
 
         try:
             self.base_domain_name = response.json()["result"]["name"]
@@ -57,7 +56,7 @@ class CloudflareAPI:
                 "Invalid response format. Could not extract base domain name: %s",
                 str(err),
             )
-            sys.exit(1)
+            raise
 
         return self.base_domain_name
 
@@ -208,12 +207,3 @@ class CloudflareAPI:
         else:
             logger.info("No existing DNS records found for type %s", ip_data["type"])
             return False
-
-
-def init_cloudflare_api(config: dict) -> Optional[CloudflareAPI]:
-    try:
-        cf_api = CloudflareAPI("https://api.cloudflare.com/client/v4", config)
-        return cf_api
-    except InvalidAPITokenError as e:
-        logger.error("Initialization failed: %s", str(e))
-    return None

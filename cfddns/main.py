@@ -10,7 +10,17 @@ import yaml
 from pathlib import Path
 from typing import Dict, Optional
 
-from cfddns.cloudflare.api import CloudflareAPI, init_cloudflare_api
+from cfddns.__about__ import __program_name__, __version__
+from cfddns.cloudflare.api import (
+    CloudflareAPI,
+    InvalidAPITokenError,
+    TokenVerificationError,
+)
+
+_version = __version__
+_program = __program_name__
+
+CLOUDFLARE_API_URL = "https://api.cloudflare.com/client/v4"
 
 # Configure logging
 logging.basicConfig(
@@ -36,20 +46,9 @@ def signal_catch_setup() -> None:
     signal.signal(signal.SIGINT, terminate_signal_handler)
 
 
-def get_version():
-    version = None
-    init_file_path = Path(__file__).resolve().parent / "__init__.py"
-    with init_file_path.open() as f:
-        for line in f:
-            if line.startswith("__version__"):
-                version = line.split("=")[1].strip().strip('"').strip("'")
-                break
-    return version
-
-
 # Define the command-line arguments
 parser = argparse.ArgumentParser(
-    prog="cfddns", description="Cloudflare Dynamic DNS updater"
+    prog=_program, description="Cloudflare Dynamic DNS updater"
 )
 parser.add_argument(
     "config",
@@ -59,7 +58,7 @@ parser.add_argument(
 parser.add_argument(
     "-i", "--interval", type=int, help="Interval between loop iterations in seconds"
 )
-parser.add_argument("--version", action="version", version=f"%(prog)s {get_version()}")
+parser.add_argument("--version", action="version", version=f"%(prog)s {_version}")
 
 
 def validate_config(config: Dict) -> bool:
@@ -115,6 +114,21 @@ def validate_config(config: Dict) -> bool:
 
     # All checks passed
     return True
+
+
+def init_cloudflare_api_client(api_url: str, config: dict) -> Optional[CloudflareAPI]:
+    try:
+        cloudflare_api = CloudflareAPI(api_url, config)
+        return cloudflare_api
+    except InvalidAPITokenError as e:
+        logger.error("Invalid API token: %s", str(e))
+        return None
+    except TokenVerificationError as e:
+        logger.error("Token verification failed: %s", str(e))
+        return None
+    except Exception as e:
+        logger.error("Unexpected error: %s", str(e))
+        return None
 
 
 def load_config(path: Path) -> Optional[Dict]:
@@ -241,7 +255,7 @@ def main() -> None:
     # Setup signal handlers
     signal_catch_setup()
 
-    logger.info(f"Starting cfddns {get_version()}")
+    logger.info("Initializing %s %s", _program, _version)
 
     if args.interval:
         # Validate interval and set to provided or default value
@@ -265,14 +279,12 @@ def main() -> None:
         sys.exit(1)
 
     logger.info("Initializing Cloudflare API client...")
-
-    cf_api = init_cloudflare_api(config)
-    if not cf_api:
-        logger.error("Cloudflare API initialization failed.")
+    cloudflare_api = init_cloudflare_api_client(CLOUDFLARE_API_URL, config)
+    if cloudflare_api is None:
         sys.exit(1)
 
     # Run the DNS update once
-    update_dns(config, cf_api)
+    update_dns(config, cloudflare_api)
 
     # Initial hash of config file
     initial_hash = get_file_hash(config_path)
@@ -290,8 +302,10 @@ def main() -> None:
                 new_config = load_config(config_path)
                 if new_config:
                     config = new_config
-                    cf_api = init_cloudflare_api(config)  # Reinitialize API client
-                    if not cf_api:
+                    cloudflare_api = init_cloudflare_api_client(
+                        CLOUDFLARE_API_URL, config
+                    )  # Reinitialize API client
+                    if cloudflare_api is None:
                         logger.error("Cloudflare API initialization failed.")
                         sys.exit(1)
                     initial_hash = current_hash
@@ -302,7 +316,7 @@ def main() -> None:
                     )
 
             # Update DNS
-            update_dns(config, cf_api)
+            update_dns(config, cloudflare_api)
 
 
 if __name__ == "__main__":
