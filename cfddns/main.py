@@ -117,6 +117,9 @@ def validate_config(config: Dict) -> bool:
 
 
 def init_cloudflare_api_client(api_url: str, config: dict) -> Optional[CloudflareAPI]:
+    """
+    Initialize a Cloudflare API client
+    """
     try:
         cloudflare_api = CloudflareAPI(api_url, config)
         return cloudflare_api
@@ -148,7 +151,7 @@ def load_config(path: Path) -> Optional[Dict]:
     return None
 
 
-def get_file_hash(path: Path):
+def get_file_hash(path: Path) -> str:
     # Calculate the SHA-256 hash of the file content
     hasher = hashlib.sha256()
     with open(path, "rb") as f:
