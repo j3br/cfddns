@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from cfddns.main import validate_config, load_config
+from cfddns.utils import load_config
 
 
 class TestValidateConfig(unittest.TestCase):
