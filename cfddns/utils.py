@@ -66,7 +66,7 @@ def get_file_hash(path: Path) -> str:
 
 def get_own_ip() -> Optional[Dict]:
     """
-    Retrieve the public IP address of the current machine from 'https://1.1.1.1/cdn-cgi/trace'.
+    Retrieve the public IP address of the current machine from 'https://api.cloudflare.com/cdn-cgi/trace'.
 
     Returns a dictionary with the following keys:
     - 'address': The retrieved IP address.
@@ -77,7 +77,7 @@ def get_own_ip() -> Optional[Dict]:
     - ValueError: If the IP address cannot be found in the response or if there is an error parsing the response.
     """
     try:
-        response = requests.get("https://1.1.1.1/cdn-cgi/trace", timeout=10)
+        response = requests.get("https://api.cloudflare.com/cdn-cgi/trace", timeout=10)
         response.raise_for_status()  # Raise an exception for bad responses
         data = response.text.splitlines()
         ip_address = next(
